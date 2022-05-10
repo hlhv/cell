@@ -14,14 +14,13 @@ package main
 
 import (
         "github.com/hlhv/cell"
-        "github.com/hlhv/cell/client"
 )
 
 func main () {
         // configure cell
         thisCell := &cell.Cell {
                 Description:   "Example cell",
-                MountPoint:    client.Mount { "@", "/" },
+                MountPoint:    cell.Mount { "@", "/" },
                 DataDirectory: "/var/hlhv/cells/example/",
                 QueenAddress:  "localhost:2001",
                 Key:           "example key",
@@ -30,7 +29,7 @@ func main () {
         }
 
         // run cell
-        thisCell.Be()
+        thisCell.Run()
 }
 
 func onHTTP (response *cell.HTTPResponse, request *cell.HTTPRequest) {

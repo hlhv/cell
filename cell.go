@@ -17,7 +17,7 @@ type Cell struct {
         logLevel      scribe.LogLevel
 
         Description   string
-        MountPoint    client.Mount
+        MountPoint    Mount
         DataDirectory string
         QueenAddress  string
         Key           string
@@ -25,6 +25,10 @@ type Cell struct {
         
         OnHTTP        func (response *HTTPResponse, request *HTTPRequest)
 }
+
+/* Mount represents a mount pattern. It has a Host and a Path field.
+ */
+type Mount client.Mount
 
 func (cell *Cell) Run () {
 
