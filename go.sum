@@ -1,0 +1,8 @@
+github.com/akamensky/argparse v1.3.1 h1:kP6+OyvR0fuBH6UhbE6yh/nskrDEIQgEA1SUXDPjx4g=
+github.com/akamensky/argparse v1.3.1/go.mod h1:S5kwC7IuDcEr5VeXtGPRVZ5o/FdhcMlQz4IZQuw64xA=
+github.com/hlhv/fsock v0.0.0-20220320042454-babab2fed524 h1:5UNBqsBznALoDDhcxfTV87UhgGk87tEVh/alFvwpyHY=
+github.com/hlhv/fsock v0.0.0-20220320042454-babab2fed524/go.mod h1:JZLxqhthbuj6yK9VpKT3Qx3hmhs8ofcEew/yP8E6OoQ=
+github.com/hlhv/protocol v0.0.0-20220410035126-de77ab0a46d8 h1:Syr3wUhGqo9TQAzA7RqMj44aRqaiFyp+H/w0Tc6Y+M4=
+github.com/hlhv/protocol v0.0.0-20220410035126-de77ab0a46d8/go.mod h1:coT2nFBDjAgv3vw5DsLy1lFen2e+CQUsacURJJjdnr0=
+github.com/hlhv/scribe v0.0.0-20220405004933-1bac59b62e42 h1:fpkDF4I+k7ezdltQiih2+JC6HUGqCd8YwTKp+HqHoUw=
+github.com/hlhv/scribe v0.0.0-20220405004933-1bac59b62e42/go.mod h1:no+rCxthQ9inCEMt+rkUSCgpxDtvC62yzEzP9D+o/o4=
