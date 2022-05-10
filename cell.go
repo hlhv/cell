@@ -23,7 +23,7 @@ type Cell struct {
         Key           string
         RootCertPath  string
         
-        OnHTTP        func (band *client.Band, request *HTTPRequest)
+        OnHTTP        func (response *HTTPResponse, request *HTTPRequest)
 }
 
 func (cell *Cell) Be () {
@@ -37,9 +37,9 @@ func (cell *Cell) Be () {
         cell.ensure()
 }
 
-func (cell *Cell) onHTTP (band *client.Band, request *HTTPRequest) {
+func (cell *Cell) onHTTP (response *HTTPResponse, request *HTTPRequest) {
         // TODO: try filestore here
-        cell.OnHTTP(band, request)
+        cell.OnHTTP(response, request)
 }
 
 func (cell *Cell) parseArgs () {
