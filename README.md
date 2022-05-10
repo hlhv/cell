@@ -14,7 +14,6 @@ package main
 
 import (
         "github.com/hlhv/cell"
-        "github.com/hlhv/protocol"
         "github.com/hlhv/cell/client"
 )
 
@@ -34,12 +33,12 @@ func main () {
         thisCell.Be()
 }
 
-func onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
+func onHTTP (response *cell.HTTPResponse, request *cell.HTTPRequest) {
         // passing nil writes no headers
-        band.WriteHTTPHead(200, nil)
+        response.WriteHead(200, nil)
         
         // write response body
-        band.WriteHTTPBody([]byte("hello, world!"))
+        response.WriteBody([]byte("hello, world!"))
 }
 ```
 
