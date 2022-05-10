@@ -26,16 +26,20 @@ type Cell struct {
         OnHTTP        func (response *HTTPResponse, request *HTTPRequest)
 }
 
-func (cell *Cell) Be () {
+func (cell *Cell) Run () {
+
         cell.parseArgs()
         cell.leash = client.NewLeash()
         cell.leash.OnHTTP(cell.onHTTP)
-        go func () {
-                scribe.ListenOnce()
-        } ()
         // TODO: rewrite filestore to dynamically update contents based on
         // timestamp, and create one that has
-        cell.ensure()
+        
+        // TODO: select statement with scribe.ListenOnce and cell.ensure and
+        // exit with error when cell.ensure fails
+        go cell.ensure()
+        for {
+                scribe.ListenOnce()
+        }
 }
 
 func (cell *Cell) onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
