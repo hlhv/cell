@@ -29,6 +29,7 @@ type Cell struct {
 func (cell *Cell) Be () {
         cell.parseArgs()
         cell.leash = client.NewLeash()
+        cell.leash.OnHTTP(cell.onHTTP)
         go func () {
                 scribe.ListenOnce()
         } ()
@@ -37,8 +38,18 @@ func (cell *Cell) Be () {
         cell.ensure()
 }
 
-func (cell *Cell) onHTTP (response *HTTPResponse, request *HTTPRequest) {
+func (cell *Cell) onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
         // TODO: try filestore here
+        
+        response := &HTTPResponse {
+                band: band,
+        }
+
+        request := &HTTPRequest {
+                band: band,
+                Head: head,
+        }
+        
         cell.OnHTTP(response, request)
 }
 
