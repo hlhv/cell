@@ -3,6 +3,7 @@ package store
 import (
         "os"
         "io"
+        "time"
         "strings"
         "net/http"
         "path/filepath"
@@ -21,9 +22,12 @@ const chunkSize int = 1024
  * memory when it is first loaded, hence the name.
  */
 type LazyFile struct {
-        FilePath string
-        mime     string
-        chunks   []fileChunk
+        FilePath   string
+        AutoReload bool
+        
+        mime       string
+        chunks     []fileChunk
+        timestamp  time.Time
 }
 
 type fileChunk []byte
@@ -36,6 +40,17 @@ func (item *LazyFile) Send (
 ) (
         err error,
 ) {
+        if item.AutoReload {
+                // check to see if file needs to be reloaded
+                newTimestamp, err := item.getCurrentTimestamp()
+                if err != nil { return err }
+                
+                if newTimestamp.After(item.timestamp) {
+                        item.timestamp = newTimestamp
+                        item.chunks = nil
+                }
+        }
+
         if item.chunks == nil {
                 err = item.loadAndSend(band, head)
                 return err
@@ -52,6 +67,13 @@ func (item *LazyFile) Send (
         }
 
         return nil
+}
+
+/* getCurrentTimestamp returns the current timestamp of the file on disk.
+ */
+func (item *LazyFile) getCurrentTimestamp () (timestamp time.Time, err error) {
+        fileInfo, err := os.Stat(item.FilePath)
+        return fileInfo.ModTime(), err
 }
 
 /* loadAndSend loads the file from disk while sending it in response to an http
@@ -95,13 +117,6 @@ func (item *LazyFile) loadAndSend (
         }
         
         return nil
-}
-
-/* for rare cases when plain text files have a mime type that doesn't fall under
- * "text/"
- */
-var mimeDict = map[string] string {
-        ".svg": "image/svg+xml",
 }
 
 /* mimeSniff determines the content type of a byte array and an associated name.
