@@ -12,13 +12,17 @@ boilerplate. A very basic cell:
 ```
 package main
 
-import "github.com/hlhv/cell"
+import (
+        "github.com/hlhv/cell"
+        "github.com/hlhv/protocol"
+        "github.com/hlhv/cell/client"
+)
 
 func main () {
         // configure cell
         thisCell := &cell.Cell {
                 Description:   "Example cell",
-                MountPoint:    cell.Mount { "@", "/" },
+                MountPoint:    client.Mount { "@", "/" },
                 DataDirectory: "/var/hlhv/cells/example/",
                 QueenAddress:  "localhost:2001",
                 Key:           "example key",
@@ -30,7 +34,7 @@ func main () {
         thisCell.Be()
 }
 
-func onHTTP (band *cell.Band, head *cell.HTTPReqHead) {
+func onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
         // passing nil writes no headers
         band.WriteHTTPHead(200, nil)
         

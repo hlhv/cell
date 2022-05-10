@@ -10,8 +10,6 @@ import (
         "github.com/akamensky/argparse"
 )
 
-type Mount        client.Mount
-type Band         client.Band
 type HTTPReqHead  protocol.FrameHTTPReqHead
 
 type Cell struct {
@@ -19,13 +17,13 @@ type Cell struct {
         logLevel      scribe.LogLevel
 
         Description   string
-        MountPoint    Mount
+        MountPoint    client.Mount
         DataDirectory string
         QueenAddress  string
         Key           string
         RootCertPath  string
         
-        OnHTTP        func (band *Band, head *HTTPReqHead)
+        OnHTTP        func (band *client.Band, head *protocol.FrameHTTPReqHead)
 }
 
 func (cell *Cell) Be () {
@@ -39,7 +37,7 @@ func (cell *Cell) Be () {
         cell.ensure()
 }
 
-func (cell *Cell) onHTTP (band *Band, head *HTTPReqHead) {
+func (cell *Cell) onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
         // TODO: try filestore here
         cell.OnHTTP(band, head)
 }
