@@ -38,8 +38,6 @@ func (cell *Cell) Run () {
         // TODO: rewrite filestore to dynamically update contents based on
         // timestamp, and create one that has
         
-        // TODO: select statement with scribe.ListenOnce and cell.ensure and
-        // exit with error when cell.ensure fails
         go cell.ensure()
         for {
                 scribe.ListenOnce()
