@@ -16,7 +16,8 @@ import (
 // check after stripping the basename from the filepath, then if match send
 // original filepath to the matched LazyDir.
 type Store struct {
-        items map[string] *LazyFile
+        lazyFiles map[string] *LazyFile
+        lazyDirs  map[string] *LazyDir
         root  string
 }
 
@@ -28,7 +29,8 @@ func New (root string) (store *Store) {
                 root = root[:lastIndex]
         }
         return &Store {
-                items: make(map[string] *LazyFile),
+                lazyFiles: make(map[string] *LazyFile),
+                lazyDirs:  make(map[string] *LazyDir),
                 root:  root,
         }
 }
@@ -48,7 +50,7 @@ func (store *Store) Register (
         
         filePath = store.root + filePath
         
-        store.items[webPath] = &LazyFile {
+        store.lazyFiles[webPath] = &LazyFile {
                 FilePath:   filePath,
                 AutoReload: autoReload,
         }
@@ -76,7 +78,7 @@ func (store *Store) RegisterDir (
 
         for _, file := range(directory) {
                 if file.IsDir() { continue }
-                store.items[webPath + file.Name()] = &LazyFile {
+                store.lazyFiles[webPath + file.Name()] = &LazyFile {
                         FilePath: dirPath + file.Name(),
                 }
         }
@@ -87,11 +89,11 @@ func (store *Store) RegisterDir (
  * unregisters it, freeing it from memory
  */
 func (store *Store) Unregister (webPath string) (err error) {
-        _, exists := store.items[webPath]
+        _, exists := store.lazyFiles[webPath]
         if !exists {
                 return errors.New("path " + webPath + " is not registered")
         }
-        delete(store.items, webPath)
+        delete(store.lazyFiles, webPath)
         return nil
 }
 
@@ -108,7 +110,7 @@ func (store *Store) TryHandle (
         err     error,
 ) {
         // TODO: check for .. in paths and fail if found
-        item, matched := store.items[head.Path]
+        item, matched := store.lazyFiles[head.Path]
         if !matched { return false, nil }
         err = item.Send(band, head)
         return true, err
