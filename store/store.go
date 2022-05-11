@@ -3,6 +3,7 @@ package store
 import (
         "errors"
         "path/filepath"
+        "github.com/hlhv/scribe"
         "github.com/hlhv/protocol"
         "github.com/hlhv/cell/client"
 )
@@ -54,6 +55,10 @@ func (store *Store) RegisterFile (
                 FilePath:   filePath,
                 AutoReload: autoReload,
         }
+
+        scribe.PrintInfo (
+                scribe.LogLevelDebug,
+                "registered file", filePath, "on", webPath)
         return nil
 }
 
@@ -80,6 +85,10 @@ func (store *Store) RegisterDir (
                 WebPath: webPath,
                 Active:  active,
         }
+
+        scribe.PrintInfo (
+                scribe.LogLevelDebug,
+                "registered dir", dirPath, "on", webPath)
         return nil
 }
 
@@ -92,6 +101,10 @@ func (store *Store) UnregisterFile (webPath string) (err error) {
                 return errors.New("path " + webPath + " is not registered")
         }
         delete(store.lazyFiles, webPath)
+
+        scribe.PrintInfo (
+                scribe.LogLevelDebug,
+                "unregistered file from", webPath)
         return nil
 }
 
@@ -104,6 +117,10 @@ func (store *Store) UnregisterDir (webPath string) (err error) {
                 return errors.New("path " + webPath + " is not registered")
         }
         delete(store.lazyDirs, webPath)
+
+        scribe.PrintInfo (
+                scribe.LogLevelDebug,
+                "unregistered dir from", webPath)
         return nil
 }
 
@@ -120,13 +137,19 @@ func (store *Store) TryHandle (
         err     error,
 ) {
         // look in registered lazy files
+        scribe.PrintProgress (
+                scribe.LogLevelDebug,
+                "looking for match in files for", head.Path)
         lazyFile, matched := store.lazyFiles[head.Path]
         if matched {
                 err = lazyFile.Send(band, head)
                 return true, err
         }
 
-        // look in registered lazy paths
+        // look in registered lazy dirs
+        scribe.PrintProgress (
+                scribe.LogLevelDebug,
+                "looking for match in dirs for", head.Path + "/")
         lazyDir, matched := store.lazyDirs[filepath.Dir(head.Path) + "/"]
         if matched {
                 lazyFile, err = lazyDir.Find(head.Path)
