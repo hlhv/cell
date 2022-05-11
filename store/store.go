@@ -32,19 +32,33 @@ func New (root string) (store *Store) {
 /* Register registers a file located at the filepath on the specific url path.
  * Url paths must start from /, and not end in /.
  */
-func (store *Store) Register (filePath string, webPath string) (err error) {
+func (store *Store) Register (
+        filePath   string,
+        webPath    string,
+        autoReload bool,
+) (
+        err error,
+) {
         if filePath[0] != '/' { filePath = "/" + filePath }
         if webPath[0]  != '/' { webPath  = "/" + webPath  }
         
         filePath = store.root + filePath
         
-        store.items[webPath] = &LazyFile { FilePath: filePath }
+        store.items[webPath] = &LazyFile {
+                FilePath:   filePath,
+                AutoReload: autoReload,
+        }
         return nil
 }
 
 /* RegisterDir registers every file in a given directory.
  */
-func (store *Store) RegisterDir (dirPath string, webPath string) (err error) {
+func (store *Store) RegisterDir (
+        dirPath string,
+        webPath string,
+) (
+        err error,
+) {
         if dirPath[0] != '/' { dirPath = "/" + dirPath }
         if webPath[0] != '/' { webPath = "/" + webPath }
         
