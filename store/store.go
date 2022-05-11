@@ -2,7 +2,7 @@ package store
 
 import (
         "errors"
-        "io/ioutil"
+        "path/filepath"
         "github.com/hlhv/protocol"
         "github.com/hlhv/cell/client"
 )
@@ -36,7 +36,6 @@ func New (root string) (store *Store) {
 }
 
 /* Register registers a file located at the filepath on the specific url path.
- * Url paths must start from /, and not end in /.
  */
 func (store *Store) Register (
         filePath   string,
@@ -57,11 +56,13 @@ func (store *Store) Register (
         return nil
 }
 
-/* RegisterDir registers every file in a given directory.
+/* RegisterDir registers a directory located at the directory path on the
+ * specific url path.
  */
 func (store *Store) RegisterDir (
         dirPath string,
         webPath string,
+        active  bool,
 ) (
         err error,
 ) {
@@ -73,14 +74,10 @@ func (store *Store) RegisterDir (
         
         dirPath = store.root + dirPath
         
-        directory, err := ioutil.ReadDir(dirPath)
-        if err != nil { return err }
-
-        for _, file := range(directory) {
-                if file.IsDir() { continue }
-                store.lazyFiles[webPath + file.Name()] = &LazyFile {
-                        FilePath: dirPath + file.Name(),
-                }
+        store.lazyDirs[webPath] = &LazyDir {
+                DirPath: dirPath,
+                WebPath: webPath,
+                Active:  active,
         }
         return nil
 }
@@ -109,11 +106,24 @@ func (store *Store) TryHandle (
         handled bool,
         err     error,
 ) {
-        // TODO: check for .. in paths and fail if found
-        item, matched := store.lazyFiles[head.Path]
-        if !matched { return false, nil }
-        err = item.Send(band, head)
-        return true, err
+        // look in registered lazy files
+        lazyFile, matched := store.lazyFiles[head.Path]
+        if matched {
+                err = lazyFile.Send(band, head)
+                return true, err
+        }
+
+        // look in registered lazy paths
+        lazyDir, matched := store.lazyDirs[filepath.Dir(head.Path) + "/"]
+        if matched {
+                lazyFile, err = lazyDir.Find(head.Path)
+                if err != nil      { return false, err }
+                if lazyFile == nil { return false, nil }
+
+                err = lazyFile.Send(band, head)
+                return true, err
+        }
+        return false, nil
 }
 
 /* Returns the root path of the store. This can be helpful for doing things such
