@@ -84,6 +84,7 @@ func (store *Store) RegisterDir (
                 DirPath: dirPath,
                 WebPath: webPath,
                 Active:  active,
+                items:   make(map[string] *LazyFile),
         }
 
         scribe.PrintInfo (
@@ -149,8 +150,8 @@ func (store *Store) TryHandle (
         // look in registered lazy dirs
         scribe.PrintProgress (
                 scribe.LogLevelDebug,
-                "looking for match in dirs for", head.Path + "/")
-        lazyDir, matched := store.lazyDirs[filepath.Dir(head.Path) + "/"]
+                "looking for match in dirs for", head.Path)
+        lazyDir, matched := store.lazyDirs[filepath.Dir(head.Path)]
         if matched {
                 lazyFile, err = lazyDir.Find(head.Path)
                 if err != nil      { return false, err }
