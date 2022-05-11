@@ -11,6 +11,10 @@ import (
  * can be registered and unregistered dynamically, and are loaded lazily. It can
  * be combined with any other system for serving files and pages.
  */
+ 
+// TODO: store separate map containing registered LazyDirs, and do a separate
+// check after stripping the basename from the filepath, then if match send
+// original filepath to the matched LazyDir.
 type Store struct {
         items map[string] *LazyFile
         root  string
@@ -103,6 +107,7 @@ func (store *Store) TryHandle (
         handled bool,
         err     error,
 ) {
+        // TODO: check for .. in paths and fail if found
         item, matched := store.items[head.Path]
         if !matched { return false, nil }
         err = item.Send(band, head)
