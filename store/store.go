@@ -151,7 +151,11 @@ func (store *Store) TryHandle (
         scribe.PrintProgress (
                 scribe.LogLevelDebug,
                 "looking for match in dirs for", head.Path)
-        lazyDir, matched := store.lazyDirs[filepath.Dir(head.Path)]
+                
+        parentDir := filepath.Dir(head.Path)
+        if parentDir[len(parentDir) - 1] != '/' { parentDir += "/" }
+        lazyDir, matched := store.lazyDirs[parentDir]
+        
         if matched {
                 lazyFile, err = lazyDir.Find(head.Path)
                 if err != nil      { return false, err }
