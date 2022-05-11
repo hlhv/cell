@@ -6,6 +6,7 @@ import (
         "time"
         "github.com/hlhv/scribe"
         "github.com/hlhv/protocol"
+        "github.com/hlhv/cell/store"
         "github.com/hlhv/cell/client"
         "github.com/akamensky/argparse"
 )
@@ -14,6 +15,7 @@ type HTTPReqHead  protocol.FrameHTTPReqHead
 
 type Cell struct {
         leash         *client.Leash
+        store         *store.Store
         logLevel      scribe.LogLevel
 
         Description   string
@@ -31,12 +33,10 @@ type Cell struct {
 type Mount client.Mount
 
 func (cell *Cell) Run () {
-
         cell.parseArgs()
         cell.leash = client.NewLeash()
         cell.leash.OnHTTP(cell.onHTTP)
-        // TODO: rewrite filestore to dynamically update contents based on
-        // timestamp, and create one that has
+        cell.store = store.New(cell.DataDirectory)
         
         go cell.ensure()
         for {
@@ -45,7 +45,10 @@ func (cell *Cell) Run () {
 }
 
 func (cell *Cell) onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
-        // TODO: try filestore here
+        handled, err := cell.store.TryHandle(band, head)
+        // TODO: respond with error
+        if err != nil { return }
+        if handled { return }
         
         response := &HTTPResponse {
                 band: band,
