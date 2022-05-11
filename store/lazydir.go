@@ -4,6 +4,7 @@ import (
         "os"
         "io/ioutil"
         "path/filepath"
+        "github.com/hlhv/scribe"
 )
 
 /* LazyDir is a struct which manages a directory of LazyFiles. 
@@ -20,11 +21,13 @@ type LazyDir struct {
  * If there isn't, it returns nil.
  */
 func (lazyDir *LazyDir) Find (webPath string) (file *LazyFile, err error) {
+        scribe.PrintProgress(scribe.LogLevelDebug, "finding " + webPath)
         if lazyDir.Active {
                 return lazyDir.findActive(webPath)
         } else {
                 return lazyDir.findLazy(webPath)
         }
+        scribe.PrintProgress(scribe.LogLevelDebug, "found " + webPath)
         return
 }
 
@@ -39,6 +42,8 @@ func (lazyDir *LazyDir) findLazy (
         err  error,
 ) {
         if lazyDir.items == nil {
+                scribe.PrintProgress (
+                        scribe.LogLevelDebug, "loading dir item list")
                 lazyDir.items = make(map[string] *LazyFile)
                 
                 directory, err := ioutil.ReadDir(lazyDir.DirPath)
@@ -51,6 +56,7 @@ func (lazyDir *LazyDir) findLazy (
                         }
                         lazyDir.items[lazyDir.WebPath + file.Name()] = item
                 }
+                scribe.PrintDone(scribe.LogLevelDebug, "loaded")
         }
         
         file, _ = lazyDir.items[webPath]
@@ -72,12 +78,19 @@ func (lazyDir *LazyDir) findActive (
 
         fileInfo, err := os.Stat(filePath)
         if err != nil || fileInfo.IsDir() {
+                scribe.PrintProgress (
+                        scribe.LogLevelDebug,
+                        "file doesn't exist, removing entry if it is there")
                 delete(lazyDir.items, webPath)
                 return nil, nil
         }
 
         file, exists := lazyDir.items[webPath]
         if exists { return file, nil }
+        
+        scribe.PrintProgress (
+                scribe.LogLevelDebug,
+                "no entry for extant file, creating")
         
         file = &LazyFile {
                 FilePath:   filePath,

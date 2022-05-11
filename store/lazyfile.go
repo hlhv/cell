@@ -7,6 +7,7 @@ import (
         "strings"
         "net/http"
         "path/filepath"
+        "github.com/hlhv/scribe"
         "github.com/hlhv/protocol"
         "github.com/hlhv/cell/client"
 )
@@ -40,6 +41,7 @@ func (item *LazyFile) Send (
 ) (
         err error,
 ) {
+        scribe.PrintProgress(scribe.LogLevelDebug, "sending file")
         if item.AutoReload {
                 // check to see if file needs to be reloaded
                 newTimestamp, err := item.getCurrentTimestamp()
@@ -66,6 +68,7 @@ func (item *LazyFile) Send (
                 if err != nil { return err }
         }
 
+        scribe.PrintDone(scribe.LogLevelDebug, "file sent")
         return nil
 }
 
@@ -86,6 +89,7 @@ func (item *LazyFile) loadAndSend (
 ) (
         err error,
 ) {
+        scribe.PrintProgress(scribe.LogLevelDebug, "loading and sending file")
         file, err := os.Open(item.FilePath)
         defer file.Close()
         if err != nil { return err }
@@ -116,6 +120,7 @@ func (item *LazyFile) loadAndSend (
                 if fileEnded { break }
         }
         
+        scribe.PrintDone(scribe.LogLevelDebug, "file loaded and sent")
         return nil
 }
 
@@ -143,5 +148,7 @@ func mimeSniff (name string, data []byte) (mime string) {
                         return strings.Replace(mime, "plain", extension[1:], 1)
                 }
         }
+        
+        scribe.PrintInfo(scribe.LogLevelDebug, "file has mimetype of " + mime)
         return mime
 }

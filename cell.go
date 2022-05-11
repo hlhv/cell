@@ -39,11 +39,14 @@ func (cell *Cell) Run () {
         cell.leash = client.NewLeash()
         cell.leash.OnHTTP(cell.onHTTP)
         cell.store = store.New(cell.DataDirectory)
+        scribe.SetLogLevel(cell.logLevel)
 
         // run setup callback
         cell.OnSetup(cell)
 
         // connect and serve
+        // TODO: add to scribe the capability of running in separate thread,
+        // then have ensure in the main thread instead.
         go cell.ensure()
         for {
                 scribe.ListenOnce()
@@ -93,7 +96,10 @@ func (cell *Cell) UnregisterDir (webPath string) (err error) {
 func (cell *Cell) onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
         handled, err := cell.store.TryHandle(band, head)
         // TODO: respond with error
-        if err != nil { return }
+        if err != nil {
+                scribe.PrintError(scribe.LogLevelError, err)
+                return
+        }
         if handled { return }
         
         response := &HTTPResponse {
