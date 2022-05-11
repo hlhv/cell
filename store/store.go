@@ -82,15 +82,27 @@ func (store *Store) RegisterDir (
         return nil
 }
 
-/* Unregister finds the file registered at the specified url path and
+/* UnregisterFile finds the file registered at the specified url path and
  * unregisters it, freeing it from memory
  */
-func (store *Store) Unregister (webPath string) (err error) {
+func (store *Store) UnregisterFile (webPath string) (err error) {
         _, exists := store.lazyFiles[webPath]
         if !exists {
                 return errors.New("path " + webPath + " is not registered")
         }
         delete(store.lazyFiles, webPath)
+        return nil
+}
+
+/* UnregisterDir finds the directory registered at the specified url path and
+ * unregisters it, freeing it from memory
+ */
+func (store *Store) UnregisterDir (webPath string) (err error) {
+        _, exists := store.lazyDirs[webPath]
+        if !exists {
+                return errors.New("path " + webPath + " is not registered")
+        }
+        delete(store.lazyDirs, webPath)
         return nil
 }
 
