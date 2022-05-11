@@ -26,6 +26,7 @@ type Cell struct {
         RootCertPath  string
         
         OnHTTP        func (response *HTTPResponse, request *HTTPRequest)
+        OnSetup       func (cell *Cell)
 }
 
 /* Mount represents a mount pattern. It has a Host and a Path field.
@@ -33,11 +34,16 @@ type Cell struct {
 type Mount client.Mount
 
 func (cell *Cell) Run () {
+        // set up cell struct
         cell.parseArgs()
         cell.leash = client.NewLeash()
         cell.leash.OnHTTP(cell.onHTTP)
         cell.store = store.New(cell.DataDirectory)
-        
+
+        // run setup callback
+        cell.OnSetup(cell)
+
+        // connect and serve
         go cell.ensure()
         for {
                 scribe.ListenOnce()
