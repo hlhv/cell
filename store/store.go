@@ -35,9 +35,10 @@ func New (root string) (store *Store) {
         }
 }
 
-/* Register registers a file located at the filepath on the specific url path.
+/* RegisterFile registers a file located at the filepath on the specific url
+ * path.
  */
-func (store *Store) Register (
+func (store *Store) RegisterFile (
         filePath   string,
         webPath    string,
         autoReload bool,

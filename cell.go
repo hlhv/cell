@@ -44,6 +44,46 @@ func (cell *Cell) Run () {
         }
 }
 
+/* RegisterFile registers a file located at the filepath on the specific url
+ * path.
+ */
+func (cell *Cell) RegisterFile (
+        filePath   string,
+        webPath    string,
+        autoReload bool,
+) (
+        err error,
+) {
+        return cell.store.RegisterFile(filePath, webPath, autoReload)
+}
+
+/* RegisterDir registers a directory located at the directory path on the
+ * specific url path.
+ */
+func (cell *Cell) RegisterDir (
+        dirPath string,
+        webPath string,
+        active  bool,
+) (
+        err error,
+) {
+        return cell.store.RegisterDir(dirPath, webPath, active)
+}
+
+/* UnregisterFile finds the file registered at the specified url path and
+ * unregisters it, freeing it from memory
+ */
+func (cell *Cell) UnregisterFile (webPath string) (err error) {
+        return cell.store.UnregisterFile(webPath)
+}
+
+/* UnregisterDir finds the directory registered at the specified url path and
+ * unregisters it, freeing it from memory
+ */
+func (cell *Cell) UnregisterDir (webPath string) (err error) {
+        return cell.store.UnregisterDir(webPath)
+}
+
 func (cell *Cell) onHTTP (band *client.Band, head *protocol.FrameHTTPReqHead) {
         handled, err := cell.store.TryHandle(band, head)
         // TODO: respond with error
