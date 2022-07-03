@@ -76,7 +76,8 @@ func (item *LazyFile) Send (
  */
 func (item *LazyFile) getCurrentTimestamp () (timestamp time.Time, err error) {
         fileInfo, err := os.Stat(item.FilePath)
-        return fileInfo.ModTime(), err
+        if err != nil { return time.Time { }, err }
+        return fileInfo.ModTime(), nil
 }
 
 /* loadAndSend loads the file from disk while sending it in response to an http
