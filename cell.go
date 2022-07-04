@@ -17,6 +17,7 @@ type Cell struct {
         leash         *client.Leash
         store         *store.Store
         logLevel      scribe.LogLevel
+        logDirectory  string
 
         Description   string
         MountPoint    Mount
@@ -128,6 +129,12 @@ func (cell *Cell) parseArgs () {
                           "everything, and none prints nothing",
         })
 
+        logDirectory := parser.String ("L", "log-directory", &argparse.Options {
+                Required: false,
+                Help:     "The directory in which to store log files. If " +
+                          "unspecified, logs will be written to stdout",
+        })
+
         err := parser.Parse(os.Args)
         if err != nil {
                 fmt.Print(parser.Usage(err))
@@ -136,10 +143,14 @@ func (cell *Cell) parseArgs () {
 
         switch *logLevel {
                 case "debug":  cell.logLevel = scribe.LogLevelDebug;  break
-                default:
-                case "normal": cell.logLevel = scribe.LogLevelNormal; break
                 case "error":  cell.logLevel = scribe.LogLevelError;  break
                 case "none":   cell.logLevel = scribe.LogLevelNone;   break
+                default:       cell.logLevel = scribe.LogLevelNormal; break
+        }
+
+        cell.logDirectory = *logDirectory
+        if *logDirectory != "" {
+                scribe.SetLogDirectory(cell.logDirectory)
         }
 }
 
