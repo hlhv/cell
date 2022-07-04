@@ -7,12 +7,12 @@ package template
  * with the same input value.
  */
 type Template struct {
-        items []*templateItem
+	items []*templateItem
 }
 
 type templateItem struct {
-        replaceMe bool
-        value     string
+	replaceMe bool
+	value     string
 }
 
 /* New creates a new template from a string of valid template syntax. Any curly
@@ -25,61 +25,66 @@ type templateItem struct {
  * called to return a string where these two fields are replaced with custom
  * input.
  */
-func New (templateString string) (template *Template) {
-        item := &templateItem{}
-        template = &Template {
-                []*templateItem { item },
-        }
+func New(templateString string) (template *Template) {
+	item := &templateItem{}
+	template = &Template{
+		[]*templateItem{item},
+	}
 
-        skip := false
-        for _, ch := range(templateString) {
-                if skip { item.value += string(ch); skip = false }
+	skip := false
+	for _, ch := range templateString {
+		if skip {
+			item.value += string(ch)
+			skip = false
+		}
 
-                if item.replaceMe {
-                        if ch == '}' {
-                                item = &templateItem { replaceMe: false }
-                                template.items = append(template.items, item)
-                        } else {
-                                item.value += string(ch)
-                        }
-                        continue
-                }
-        
-                switch ch {
-                case '\\':
-                        skip = true
-                        break
-                case '{':
-                        item = &templateItem { replaceMe: true }
-                        template.items = append(template.items, item)
-                        break
-                default:
-                        item.value += string(ch)
-                }
-        }
+		if item.replaceMe {
+			if ch == '}' {
+				item = &templateItem{replaceMe: false}
+				template.items = append(template.items, item)
+			} else {
+				item.value += string(ch)
+			}
+			continue
+		}
 
-        return
+		switch ch {
+		case '\\':
+			skip = true
+			break
+		case '{':
+			item = &templateItem{replaceMe: true}
+			template.items = append(template.items, item)
+			break
+		default:
+			item.value += string(ch)
+		}
+	}
+
+	return
 }
 
 /* Eval uses the template to format the inputs map and outputs the result as a
  * string.
  */
-func (template *Template) Eval (inputs map[string] string) (output string) {
-        for _, item := range(template.items) {
-                if item.replaceMe {
-                        value, defined := inputs[item.value]
-                        if defined { output += value }
-                } else {
-                        output += item.value
-                }
-        }
+func (template *Template) Eval(inputs map[string]string) (output string) {
+	for _, item := range template.items {
+		if item.replaceMe {
+			value, defined := inputs[item.value]
+			if defined {
+				output += value
+			}
+		} else {
+			output += item.value
+		}
+	}
 
-        return
+	return
 }
 
 /* ByteEval wraps Eval, but returns a []byte instead of a string which can be
  * more useful for writing a response body.
  */
-func (template *Template) ByteEval (inputs map[string] string) (output []byte) {
-        return []byte(template.Eval(inputs))
+func (template *Template) ByteEval(inputs map[string]string) (output []byte) {
+	return []byte(template.Eval(inputs))
 }
