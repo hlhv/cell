@@ -155,7 +155,7 @@ func (cell *Cell) parseArgs () {
 }
 
 func (cell *Cell) ensure () {
-        var retryTime time.Duration = 3
+        var retryTime int64 = 3
         for {
                 worked, err := cell.ensureOnce ()
                 if err != nil {
@@ -170,8 +170,10 @@ func (cell *Cell) ensure () {
                 
                 scribe.PrintInfo (
                         scribe.LogLevelNormal,
-                        "disconnected. retrying in", retryTime)
-                time.Sleep(retryTime * time.Second)
+                        "disconnected. retrying in",
+                        int64(retryTime),
+                        "seconds")
+                time.Sleep(time.Duration(retryTime) * time.Second)
         }
 }
 
