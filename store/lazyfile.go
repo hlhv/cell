@@ -14,7 +14,7 @@ import (
 
 /* chunkSize does not refer to actual chunked encoding. This is just so the
  * client doesn't have to wait for the cell to send everything over and the
- * queen to send that over before recieving everything. It should be at least
+ * queen to send that over before receiving everything. It should be at least
  * 512 in order for accurate mime-type detection.
  */
 const chunkSize int = 1024
