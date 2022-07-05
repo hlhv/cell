@@ -1,7 +1,6 @@
 package client
 
 import (
-	"container/list"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -26,7 +25,7 @@ type Leash struct {
 	conn    net.Conn
 	reader  *fsock.Reader
 	writer  *fsock.Writer
-	bands   *list.List
+	bands   map[*Band]any
 	handles leashHandles
 	retry   bool
 	tlsConf *tls.Config
@@ -54,7 +53,7 @@ func NewLeash() (leash *Leash) {
 		conn:   nil,
 		reader: nil,
 		writer: nil,
-		bands:  list.New(),
+		bands:  make(map[*Band]any),
 		retry:  true,
 	}
 }
@@ -156,11 +155,9 @@ func (leash *Leash) Dial(
  */
 func (leash *Leash) Close() {
 	leash.conn.Close()
-	item := leash.bands.Front()
-	for item != nil {
-		item.Value.(*Band).Close()
-		leash.bands.Remove(item)
-		item = item.Next()
+
+	for band, _ := range leash.bands {
+		band.Close()
 	}
 }
 
@@ -177,13 +174,12 @@ func (leash *Leash) Stop() {
  * whole lot. Currently it is run every time a new band is created.
  */
 func (leash *Leash) cleanBands() {
-	item := leash.bands.Front()
-	for item != nil {
-		if !item.Value.(*Band).open {
-			leash.bands.Remove(item)
+	for band, _ := range leash.bands {
+		if !band.open {
+			delete(leash.bands, band)
 		}
-		item = item.Next()
 	}
+	
 }
 
 /* NewBand Creates a new band specifically for this leash, and adds it to the
@@ -198,7 +194,7 @@ func (leash *Leash) NewBand() (err error) {
 		leash.handleBandFrame,
 		leash.tlsConf,
 	)
-	leash.bands.PushBack(band)
+	leash.bands[band] = nil
 	// we need to run this every so often, might as well be here
 	leash.cleanBands()
 	return err
