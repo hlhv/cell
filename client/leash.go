@@ -27,8 +27,8 @@ type Leash struct {
 	reader *fsock.Reader
 	writer *fsock.Writer
 	
-	bands      map[*Band]any
-	bandsMutex sync.RWMutex // TODO: lock and unlock this
+	bands      map[*Band]interface{}
+	bandsMutex sync.RWMutex
 	
 	handles leashHandles
 	retry   bool
@@ -57,7 +57,7 @@ func NewLeash() (leash *Leash) {
 		conn:   nil,
 		reader: nil,
 		writer: nil,
-		bands:  make(map[*Band]any),
+		bands:  make(map[*Band]interface{}),
 		retry:  true,
 	}
 }
