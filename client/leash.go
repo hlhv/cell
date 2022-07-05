@@ -26,10 +26,10 @@ type Leash struct {
 	conn   net.Conn
 	reader *fsock.Reader
 	writer *fsock.Writer
-	
+
 	bands      map[*Band]interface{}
 	bandsMutex sync.RWMutex
-	
+
 	handles leashHandles
 	retry   bool
 	tlsConf *tls.Config
@@ -162,7 +162,7 @@ func (leash *Leash) Close() {
 
 	leash.bandsMutex.RLock()
 	defer leash.bandsMutex.RUnlock()
-	for band, _ := range leash.bands {
+	for band := range leash.bands {
 		band.Close()
 	}
 }
@@ -182,8 +182,8 @@ func (leash *Leash) Stop() {
 func (leash *Leash) cleanBands() {
 	leash.bandsMutex.Lock()
 	defer leash.bandsMutex.Unlock()
-	
-	for band, _ := range leash.bands {
+
+	for band := range leash.bands {
 		if !band.open {
 			delete(leash.bands, band)
 		}
@@ -202,11 +202,11 @@ func (leash *Leash) NewBand() (err error) {
 		leash.handleBandFrame,
 		leash.tlsConf,
 	)
-	
+
 	leash.bandsMutex.Lock()
 	leash.bands[band] = nil
 	leash.bandsMutex.Unlock()
-	
+
 	// we need to run this every so often, might as well be here
 	leash.cleanBands()
 	return err
