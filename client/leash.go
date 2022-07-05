@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"sync"
 )
 
 /* Leash represents a connection to the server. Through it, the cell and the
@@ -19,13 +20,16 @@ import (
  * are automatically created and destroyed as needed.
  */
 type Leash struct {
-	queue   chan Req
-	uuid    string
-	key     string
-	conn    net.Conn
-	reader  *fsock.Reader
-	writer  *fsock.Writer
-	bands   map[*Band]any
+	queue  chan Req
+	uuid   string
+	key    string
+	conn   net.Conn
+	reader *fsock.Reader
+	writer *fsock.Writer
+	
+	bands      map[*Band]any
+	bandsMutex sync.RWMutex // TODO: lock and unlock this
+	
 	handles leashHandles
 	retry   bool
 	tlsConf *tls.Config
@@ -156,6 +160,8 @@ func (leash *Leash) Dial(
 func (leash *Leash) Close() {
 	leash.conn.Close()
 
+	leash.bandsMutex.RLock()
+	defer leash.bandsMutex.RUnlock()
 	for band, _ := range leash.bands {
 		band.Close()
 	}
@@ -174,12 +180,14 @@ func (leash *Leash) Stop() {
  * whole lot. Currently it is run every time a new band is created.
  */
 func (leash *Leash) cleanBands() {
+	leash.bandsMutex.Lock()
+	defer leash.bandsMutex.Unlock()
+	
 	for band, _ := range leash.bands {
 		if !band.open {
 			delete(leash.bands, band)
 		}
 	}
-	
 }
 
 /* NewBand Creates a new band specifically for this leash, and adds it to the
@@ -194,7 +202,11 @@ func (leash *Leash) NewBand() (err error) {
 		leash.handleBandFrame,
 		leash.tlsConf,
 	)
+	
+	leash.bandsMutex.Lock()
 	leash.bands[band] = nil
+	leash.bandsMutex.Unlock()
+	
 	// we need to run this every so often, might as well be here
 	leash.cleanBands()
 	return err
