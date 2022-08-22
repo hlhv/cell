@@ -158,6 +158,8 @@ func mimeSniff(name string, data []byte) (mime string) {
 		switch extension {
 		case ".svg":
 			return "image/svg+xml"
+		case ".js":
+			return "application/javascript"
 
 		// normal case
 		default:

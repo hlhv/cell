@@ -2,7 +2,7 @@ github.com/akamensky/argparse v1.4.0 h1:YGzvsTqCvbEZhL8zZu2AiA5nq805NZh75JNj4ajn
 github.com/akamensky/argparse v1.4.0/go.mod h1:S5kwC7IuDcEr5VeXtGPRVZ5o/FdhcMlQz4IZQuw64xA=
 github.com/hlhv/fsock v0.1.0 h1:ThrZCgIHvv6pKxEAOisu5J0xgomdE5ouTk+6p3cRUx0=
 github.com/hlhv/fsock v0.1.0/go.mod h1:JZLxqhthbuj6yK9VpKT3Qx3hmhs8ofcEew/yP8E6OoQ=
-github.com/hlhv/protocol v0.1.0 h1:/56jMQXKySCsR39AhH1KLv2lISpKOu2O5po3EbXLksw=
-github.com/hlhv/protocol v0.1.0/go.mod h1:coT2nFBDjAgv3vw5DsLy1lFen2e+CQUsacURJJjdnr0=
-github.com/hlhv/scribe v0.0.0-20220707005532-1e20982cefe8 h1:d4KXg//dcmksT5NNYXFLQLox6tinK3a53OggqazBzzQ=
-github.com/hlhv/scribe v0.0.0-20220707005532-1e20982cefe8/go.mod h1:no+rCxthQ9inCEMt+rkUSCgpxDtvC62yzEzP9D+o/o4=
+github.com/hlhv/protocol v0.2.0 h1:aUQYOHCjmyzfLk7eoz3RHVkAn+wlgBk5F31gi9fpGfU=
+github.com/hlhv/protocol v0.2.0/go.mod h1:coT2nFBDjAgv3vw5DsLy1lFen2e+CQUsacURJJjdnr0=
+github.com/hlhv/scribe v0.1.0 h1:/zHc4uBcdh0IsIFAccsNFAiu8rrTffBQhZnHzdy8BFE=
+github.com/hlhv/scribe v0.1.0/go.mod h1:no+rCxthQ9inCEMt+rkUSCgpxDtvC62yzEzP9D+o/o4=
