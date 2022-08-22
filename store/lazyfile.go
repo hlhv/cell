@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"strconv"
 	"time"
 )
 
@@ -29,6 +30,9 @@ type LazyFile struct {
 	mime      string
 	chunks    []fileChunk
 	timestamp time.Time
+
+	totalSize int64
+	totalSizeString string
 }
 
 type fileChunk []byte
@@ -62,6 +66,7 @@ func (item *LazyFile) Send(
 
 	_, err = band.WriteHTTPHead(200, map[string][]string{
 		"content-type": {item.mime},
+		"content-length": {item.totalSizeString},
 	})
 	if err != nil {
 		return err
@@ -105,6 +110,14 @@ func (item *LazyFile) loadAndSend(
 		return err
 	}
 
+	// get file size
+	fileInformation, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	item.totalSize = fileInformation.Size()
+	item.totalSizeString = strconv.FormatInt(item.totalSize, 10)
+
 	needMime := true
 	for {
 		chunk := make([]byte, chunkSize)
@@ -121,6 +134,7 @@ func (item *LazyFile) loadAndSend(
 			item.mime = mimeSniff(item.FilePath, chunk)
 			_, err = band.WriteHTTPHead(200, map[string][]string{
 				"content-type": {item.mime},
+				"content-length": {item.totalSizeString},
 			})
 			if err != nil {
 				return err
