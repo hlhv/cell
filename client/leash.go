@@ -31,7 +31,6 @@ type Leash struct {
 	bandsMutex sync.RWMutex
 
 	handles leashHandles
-	retry   bool
 	tlsConf *tls.Config
 }
 
@@ -58,7 +57,6 @@ func NewLeash() (leash *Leash) {
 		reader: nil,
 		writer: nil,
 		bands:  make(map[*Band]interface{}),
-		retry:  true,
 	}
 }
 
@@ -153,9 +151,7 @@ func (leash *Leash) Dial(
 	return nil
 }
 
-/* Close closes the leash, and all bands in it. If the connection is ensured,
- * this will just re-connect afterwards. To stop this from happening, call the
- * Stop() method instead.
+/* Close closes the leash, and all bands in it.
  */
 func (leash *Leash) Close() {
 	leash.conn.Close()
@@ -165,14 +161,6 @@ func (leash *Leash) Close() {
 	for band := range leash.bands {
 		band.Close()
 	}
-}
-
-/* Stop closes the leash, and all bands in it, preventing the leash from
- * reconnecting if it is ensured.
- */
-func (leash *Leash) Stop() {
-	leash.retry = false
-	leash.Close()
 }
 
 /* cleanBands Removes references to closed bands so that they can be garbage
@@ -219,10 +207,11 @@ func (leash *Leash) Listen() (err error) {
 		var kind protocol.FrameKind
 		var data []byte
 		kind, data, err = protocol.ReadParseFrame(leash.reader)
-		scribe.PrintRequest(
-			scribe.LogLevelDebug, "received command over leash")
 
 		if err == io.EOF {
+			scribe.PrintInfo(
+				scribe.LogLevelDebug,
+				"EOF recieved from queen on leash")
 			break
 		}
 		if err != nil {
@@ -231,6 +220,9 @@ func (leash *Leash) Listen() (err error) {
 			leash.Close()
 			return err
 		}
+		
+		scribe.PrintRequest(
+			scribe.LogLevelDebug, "received command over leash")
 
 		leash.handleFrame(kind, data)
 	}

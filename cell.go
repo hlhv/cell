@@ -28,6 +28,8 @@ type Cell struct {
 	Key           string
 	RootCertPath  string
 
+	shouldStop bool
+
 	OnHTTP  func(response *HTTPResponse, request *HTTPRequest)
 	OnSetup func(cell *Cell)
 	OnStop  func()
@@ -57,18 +59,23 @@ func (cell *Cell) Run() {
 		scribe.PrintProgress(scribe.LogLevelNormal, "shutting down")
 
 		// run a shutdown sequence
-		cell.leash.Stop()
+		cell.Stop()
 		cell.OnStop()
 		
 		scribe.PrintDone(scribe.LogLevelNormal, "exiting")
-		os.Exit(0)
 	}()
 
 	// connect and serve
 	cell.ensure()
 }
 
-
+/* Stop closes the cell's leash, and all bands in it, preventing the leash from
+ * reconnecting if it is ensured.
+ */
+func (cell *Cell) Stop() {
+	cell.shouldStop = true
+	cell.leash.Close()
+}
 
 /* RegisterFile registers a file located at the filepath on the specific url
  * path.
@@ -182,13 +189,17 @@ func (cell *Cell) parseArgs() {
 
 func (cell *Cell) ensure() {
 	var retryTime int64 = 3
-	for {
-		worked, err := cell.ensureOnce()
+	for !cell.shouldStop {
+		lastEnsureTime := time.Now()
+		err := cell.ensureOnce()
+
+		if cell.shouldStop { return }
+		
 		if err != nil {
 			scribe.PrintError(
 				scribe.LogLevelError, "connection error:", err)
 		}
-		if worked {
+		if time.Since(lastEnsureTime) > 10 * time.Second {
 			retryTime = 2
 		} else if retryTime < 60 {
 			retryTime = (retryTime * 3) / 2
@@ -203,18 +214,18 @@ func (cell *Cell) ensure() {
 	}
 }
 
-func (cell *Cell) ensureOnce() (worked bool, err error) {
+func (cell *Cell) ensureOnce() (err error) {
 	err = cell.leash.Dial(cell.QueenAddress, cell.Key, cell.RootCertPath)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	err = cell.leash.Mount(cell.MountPoint.Host, cell.MountPoint.Path)
 	if err != nil {
-		return true, err
+		return err
 	}
 
 	scribe.PrintDone(scribe.LogLevelNormal, "mounted")
 
-	return true, cell.leash.Listen()
+	return cell.leash.Listen()
 }
