@@ -2,6 +2,8 @@ package cell
 
 import (
 	"fmt"
+	"os/signal"
+	"syscall"
 	"github.com/akamensky/argparse"
 	"github.com/hlhv/cell/client"
 	"github.com/hlhv/cell/store"
@@ -28,6 +30,7 @@ type Cell struct {
 
 	OnHTTP  func(response *HTTPResponse, request *HTTPRequest)
 	OnSetup func(cell *Cell)
+	OnStop  func()
 }
 
 /* Mount represents a mount pattern. It has a Host and a Path field.
@@ -41,18 +44,28 @@ func (cell *Cell) Run() {
 	cell.leash.OnHTTP(cell.onHTTP)
 	cell.store = store.New(cell.DataDirectory)
 	scribe.SetLogLevel(cell.logLevel)
-
+	
 	// run setup callback
 	cell.OnSetup(cell)
 
+	// create sigint handler
+	sigintNotify := make(chan os.Signal, 1)
+	signal.Notify(sigintNotify, os.Interrupt, syscall.SIGTERM)
+	
+	go func() {
+		<- sigintNotify
+		scribe.PrintProgress(scribe.LogLevelNormal, "shutting down")
+		// TODO: disconnect from queen before doing this
+		cell.OnStop()
+		scribe.PrintDone(scribe.LogLevelNormal, "exiting")
+		os.Exit(0)
+	}()
+
 	// connect and serve
-	// TODO: add to scribe the capability of running in separate thread,
-	// then have ensure in the main thread instead.
-	go cell.ensure()
-	for {
-		scribe.ListenOnce()
-	}
+	cell.ensure()
 }
+
+
 
 /* RegisterFile registers a file located at the filepath on the specific url
  * path.
