@@ -228,6 +228,8 @@ func (leash *Leash) Listen() (err error) {
 		if err != nil {
 			scribe.PrintError(
 				scribe.LogLevelError, "leash error:", err)
+			leash.Close()
+			return err
 		}
 
 		leash.handleFrame(kind, data)

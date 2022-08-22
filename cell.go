@@ -40,10 +40,10 @@ type Mount client.Mount
 func (cell *Cell) Run() {
 	// set up cell struct
 	cell.parseArgs()
+	scribe.SetLogLevel(cell.logLevel)
 	cell.leash = client.NewLeash()
 	cell.leash.OnHTTP(cell.onHTTP)
 	cell.store = store.New(cell.DataDirectory)
-	scribe.SetLogLevel(cell.logLevel)
 	
 	// run setup callback
 	cell.OnSetup(cell)
@@ -55,8 +55,11 @@ func (cell *Cell) Run() {
 	go func() {
 		<- sigintNotify
 		scribe.PrintProgress(scribe.LogLevelNormal, "shutting down")
-		// TODO: disconnect from queen before doing this
+
+		// run a shutdown sequence
+		cell.leash.Stop()
 		cell.OnStop()
+		
 		scribe.PrintDone(scribe.LogLevelNormal, "exiting")
 		os.Exit(0)
 	}()
