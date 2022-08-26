@@ -60,7 +60,9 @@ func (cell *Cell) Run() {
 
 		// run a shutdown sequence
 		cell.Stop()
-		cell.OnStop()
+		if cell.OnStop != nil {
+			cell.OnStop()
+		}
 		
 		scribe.PrintDone(scribe.LogLevelNormal, "exiting")
 	}()
