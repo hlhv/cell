@@ -160,11 +160,13 @@ func (leash *Leash) Dial(
 func (leash *Leash) Close() {
 	// if we aren't listening, we need to exit because there won't be
 	// anything to respond to stopNotify.
-	if !leash.listening { return }
+	if !leash.listening {
+		return
+	}
 
 	leash.stopNotify = make(chan int)
 	leash.conn.Close()
-	<- leash.stopNotify
+	<-leash.stopNotify
 
 	leash.bandsMutex.RLock()
 	defer leash.bandsMutex.RUnlock()
@@ -250,7 +252,7 @@ func (leash *Leash) Listen() (err error) {
 			leash.Close()
 			return err
 		}
-		
+
 		scribe.PrintRequest(
 			scribe.LogLevelDebug, "received command over leash")
 

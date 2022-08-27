@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,7 +31,7 @@ type LazyFile struct {
 	chunks    []fileChunk
 	timestamp time.Time
 
-	totalSize int64
+	totalSize       int64
 	totalSizeString string
 }
 
@@ -90,17 +90,17 @@ func (item *LazyFile) sendHeaders(
 	err error,
 ) {
 	headers := map[string][]string{
-		"content-type": {item.mime},
+		"content-type":   {item.mime},
 		"content-length": {item.totalSizeString},
 	}
 
 	if maxAge > 0 && item.mime != "text/html" {
-		 headers["cache-control"] = []string{
-		 	"max-age="+
-		 	strconv.Itoa(int(maxAge.Seconds())),
-		 }
+		headers["cache-control"] = []string{
+			"max-age=" +
+				strconv.Itoa(int(maxAge.Seconds())),
+		}
 	}
-	
+
 	_, err = band.WriteHTTPHead(200, headers)
 	return
 }

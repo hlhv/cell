@@ -101,7 +101,7 @@ func (band *Band) listen() {
 
 	for {
 		kind, data, err := protocol.ReadParseFrame(band.reader)
-		
+
 		if band.stopNotify != nil {
 			scribe.PrintInfo(
 				scribe.LogLevelDebug,
@@ -110,7 +110,7 @@ func (band *Band) listen() {
 			band.stopNotify <- 0
 			break
 		}
-		
+
 		if err == io.EOF {
 			break
 		}
@@ -135,12 +135,14 @@ func (band *Band) listen() {
 func (band *Band) Close() {
 	// if we aren't listening, we need to exit because there won't be
 	// anything to respond to stopNotify.
-	if !band.listening { return }
-	
+	if !band.listening {
+		return
+	}
+
 	scribe.PrintProgress(scribe.LogLevelDebug, "closing band")
 	band.stopNotify = make(chan int)
 	band.conn.Close()
-	<- band.stopNotify
+	<-band.stopNotify
 	scribe.PrintDone(scribe.LogLevelDebug, "band closed")
 }
 

@@ -2,14 +2,14 @@ package cell
 
 import (
 	"fmt"
-	"os/signal"
-	"syscall"
 	"github.com/akamensky/argparse"
 	"github.com/hlhv/cell/client"
 	"github.com/hlhv/cell/store"
 	"github.com/hlhv/protocol"
 	"github.com/hlhv/scribe"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -46,7 +46,7 @@ func (cell *Cell) Run() {
 	cell.leash = client.NewLeash()
 	cell.leash.OnHTTP(cell.onHTTP)
 	cell.store = store.New(cell.DataDirectory)
-	
+
 	// run setup callback
 	cell.OnSetup(cell)
 
@@ -58,7 +58,7 @@ func (cell *Cell) Run() {
 	go cell.ensure()
 
 	// wait for sigint
-	<- sigintNotify
+	<-sigintNotify
 	scribe.PrintProgress(scribe.LogLevelNormal, "shutting down")
 
 	// run a shutdown sequence
@@ -66,7 +66,7 @@ func (cell *Cell) Run() {
 	if cell.OnStop != nil {
 		cell.OnStop()
 	}
-	
+
 	scribe.PrintDone(scribe.LogLevelNormal, "exiting")
 	scribe.Stop()
 }
@@ -78,7 +78,6 @@ func (cell *Cell) Stop() {
 	cell.shouldStop = true
 	cell.leash.Close()
 }
-
 
 /* SetCacheMaxAge sets the max age field of the cache-control header returned
  * when reponding to an HTTPS request with registered files.
@@ -203,13 +202,15 @@ func (cell *Cell) ensure() {
 		lastEnsureTime := time.Now()
 		err := cell.ensureOnce()
 
-		if cell.shouldStop { return }
-		
+		if cell.shouldStop {
+			return
+		}
+
 		if err != nil {
 			scribe.PrintError(
 				scribe.LogLevelError, "connection error:", err)
 		}
-		if time.Since(lastEnsureTime) > 10 * time.Second {
+		if time.Since(lastEnsureTime) > 10*time.Second {
 			retryTime = 2
 		} else if retryTime < 60 {
 			retryTime = (retryTime * 3) / 2

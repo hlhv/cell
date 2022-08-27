@@ -1,12 +1,12 @@
 package store
 
 import (
-	"time"
 	"errors"
 	"github.com/hlhv/cell/client"
 	"github.com/hlhv/protocol"
 	"github.com/hlhv/scribe"
 	"path/filepath"
+	"time"
 )
 
 /* Store is a simple resource manager for serving static file resources. Files
