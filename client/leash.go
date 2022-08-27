@@ -30,6 +30,9 @@ type Leash struct {
 	bands      map[*Band]interface{}
 	bandsMutex sync.RWMutex
 
+	listening  bool
+	stopNotify chan int
+
 	handles leashHandles
 	tlsConf *tls.Config
 }
@@ -151,10 +154,17 @@ func (leash *Leash) Dial(
 	return nil
 }
 
-/* Close closes the leash, and all bands in it.
+/* Close closes the leash, and all bands in it. This function waits until the
+ * leash and all bands have been sucessfully closed.
  */
 func (leash *Leash) Close() {
+	// if we aren't listening, we need to exit because there won't be
+	// anything to respond to stopNotify.
+	if !leash.listening { return }
+
+	leash.stopNotify = make(chan int)
 	leash.conn.Close()
+	<- leash.stopNotify
 
 	leash.bandsMutex.RLock()
 	defer leash.bandsMutex.RUnlock()
@@ -172,7 +182,7 @@ func (leash *Leash) cleanBands() {
 	defer leash.bandsMutex.Unlock()
 
 	for band := range leash.bands {
-		if !band.open {
+		if !band.listening {
 			delete(leash.bands, band)
 		}
 	}
@@ -203,10 +213,30 @@ func (leash *Leash) NewBand() (err error) {
 /* Listen listens for data sent over the leash.
  */
 func (leash *Leash) Listen() (err error) {
+	scribe.PrintInfo(
+		scribe.LogLevelDebug,
+		"leash listening")
+	leash.listening = true
+	defer func() {
+		leash.listening = false
+		scribe.PrintInfo(
+			scribe.LogLevelDebug,
+			"leash no longer listening")
+	}()
+
 	for {
 		var kind protocol.FrameKind
 		var data []byte
 		kind, data, err = protocol.ReadParseFrame(leash.reader)
+
+		if leash.stopNotify != nil {
+			scribe.PrintInfo(
+				scribe.LogLevelDebug,
+				"leash recieved stop request, replying on",
+				"stopNotify")
+			leash.stopNotify <- 0
+			break
+		}
 
 		if err == io.EOF {
 			scribe.PrintInfo(

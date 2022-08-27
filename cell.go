@@ -53,22 +53,22 @@ func (cell *Cell) Run() {
 	// create sigint handler
 	sigintNotify := make(chan os.Signal, 1)
 	signal.Notify(sigintNotify, os.Interrupt, syscall.SIGTERM)
-	
-	go func() {
-		<- sigintNotify
-		scribe.PrintProgress(scribe.LogLevelNormal, "shutting down")
-
-		// run a shutdown sequence
-		cell.Stop()
-		if cell.OnStop != nil {
-			cell.OnStop()
-		}
-		
-		scribe.PrintDone(scribe.LogLevelNormal, "exiting")
-	}()
 
 	// connect and serve
-	cell.ensure()
+	go cell.ensure()
+
+	// wait for sigint
+	<- sigintNotify
+	scribe.PrintProgress(scribe.LogLevelNormal, "shutting down")
+
+	// run a shutdown sequence
+	cell.Stop()
+	if cell.OnStop != nil {
+		cell.OnStop()
+	}
+	
+	scribe.PrintDone(scribe.LogLevelNormal, "exiting")
+	scribe.Stop()
 }
 
 /* Stop closes the cell's leash, and all bands in it, preventing the leash from

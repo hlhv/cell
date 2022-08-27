@@ -13,11 +13,14 @@ import (
 )
 
 type Band struct {
-	conn     net.Conn
-	reader   *fsock.Reader
-	writer   *fsock.Writer
-	open     bool
-	callback func(*Band, protocol.FrameKind, []byte)
+	conn      net.Conn
+	reader    *fsock.Reader
+	writer    *fsock.Writer
+	listening bool
+	isGarbage bool
+	callback  func(*Band, protocol.FrameKind, []byte)
+
+	stopNotify chan int
 }
 
 func spawnBand(
@@ -76,7 +79,6 @@ func spawnBand(
 		conn:     conn,
 		reader:   reader,
 		writer:   writer,
-		open:     true,
 		callback: callback,
 	}
 
@@ -85,8 +87,30 @@ func spawnBand(
 }
 
 func (band *Band) listen() {
+	scribe.PrintInfo(
+		scribe.LogLevelDebug,
+		"band listening")
+	band.listening = true
+	defer func() {
+		band.listening = false
+		band.isGarbage = true
+		scribe.PrintInfo(
+			scribe.LogLevelDebug,
+			"band no longer listening")
+	}()
+
 	for {
 		kind, data, err := protocol.ReadParseFrame(band.reader)
+		
+		if band.stopNotify != nil {
+			scribe.PrintInfo(
+				scribe.LogLevelDebug,
+				"band recieved stop request, replying on",
+				"stopNotify")
+			band.stopNotify <- 0
+			break
+		}
+		
 		if err == io.EOF {
 			break
 		}
@@ -103,16 +127,20 @@ func (band *Band) listen() {
 			band.callback(band, kind, data)
 		}
 	}
-	scribe.PrintDisconnect(scribe.LogLevelDebug, "band disconnected")
 }
 
 /* Close closes the connection and marks the band as closed so that it can be
  * removed from the list later.
  */
 func (band *Band) Close() {
+	// if we aren't listening, we need to exit because there won't be
+	// anything to respond to stopNotify.
+	if !band.listening { return }
+	
 	scribe.PrintProgress(scribe.LogLevelDebug, "closing band")
-	band.open = false
+	band.stopNotify = make(chan int)
 	band.conn.Close()
+	<- band.stopNotify
 	scribe.PrintDone(scribe.LogLevelDebug, "band closed")
 }
 
