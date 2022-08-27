@@ -42,6 +42,7 @@ type fileChunk []byte
 func (item *LazyFile) Send(
 	band *client.Band,
 	head *protocol.FrameHTTPReqHead,
+	maxAge time.Duration,
 ) (
 	err error,
 ) {
@@ -60,14 +61,11 @@ func (item *LazyFile) Send(
 	}
 
 	if item.chunks == nil {
-		err = item.loadAndSend(band, head)
+		err = item.loadAndSend(band, head, maxAge)
 		return err
 	}
 
-	_, err = band.WriteHTTPHead(200, map[string][]string{
-		"content-type": {item.mime},
-		"content-length": {item.totalSizeString},
-	})
+	err = item.sendHeaders(band, maxAge)
 	if err != nil {
 		return err
 	}
@@ -81,6 +79,30 @@ func (item *LazyFile) Send(
 
 	scribe.PrintDone(scribe.LogLevelDebug, "file sent")
 	return nil
+}
+
+/* sendHeaders creates builds and sends applicable HTTP headers.
+ */
+func (item *LazyFile) sendHeaders(
+	band *client.Band,
+	maxAge time.Duration,
+) (
+	err error,
+) {
+	headers := map[string][]string{
+		"content-type": {item.mime},
+		"content-length": {item.totalSizeString},
+	}
+
+	if maxAge > 0 && item.mime != "text/html" {
+		 headers["cache-control"] = []string{
+		 	"max-age="+
+		 	strconv.Itoa(int(maxAge.Seconds())),
+		 }
+	}
+	
+	_, err = band.WriteHTTPHead(200, headers)
+	return
 }
 
 /* getCurrentTimestamp returns the current timestamp of the file on disk.
@@ -100,6 +122,7 @@ func (item *LazyFile) getCurrentTimestamp() (timestamp time.Time, err error) {
 func (item *LazyFile) loadAndSend(
 	band *client.Band,
 	head *protocol.FrameHTTPReqHead,
+	maxAge time.Duration,
 ) (
 	err error,
 ) {
@@ -132,10 +155,8 @@ func (item *LazyFile) loadAndSend(
 		if needMime {
 			needMime = false
 			item.mime = mimeSniff(item.FilePath, chunk)
-			_, err = band.WriteHTTPHead(200, map[string][]string{
-				"content-type": {item.mime},
-				"content-length": {item.totalSizeString},
-			})
+
+			err = item.sendHeaders(band, maxAge)
 			if err != nil {
 				return err
 			}

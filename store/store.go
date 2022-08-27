@@ -1,6 +1,7 @@
 package store
 
 import (
+	"time"
 	"errors"
 	"github.com/hlhv/cell/client"
 	"github.com/hlhv/protocol"
@@ -20,6 +21,7 @@ type Store struct {
 	lazyFiles map[string]*LazyFile
 	lazyDirs  map[string]*LazyDir
 	root      string
+	maxAge    time.Duration
 }
 
 /* New creates a new Store.
@@ -33,6 +35,7 @@ func New(root string) (store *Store) {
 		lazyFiles: make(map[string]*LazyFile),
 		lazyDirs:  make(map[string]*LazyDir),
 		root:      root,
+		maxAge:    time.Hour * 4,
 	}
 }
 
@@ -155,7 +158,7 @@ func (store *Store) TryHandle(
 		"looking for match in files for", head.Path)
 	lazyFile, matched := store.lazyFiles[head.Path]
 	if matched {
-		err = lazyFile.Send(band, head)
+		err = lazyFile.Send(band, head, store.maxAge)
 		return true, err
 	}
 
@@ -179,7 +182,7 @@ func (store *Store) TryHandle(
 			return false, nil
 		}
 
-		err = lazyFile.Send(band, head)
+		err = lazyFile.Send(band, head, store.maxAge)
 		return true, err
 	}
 	return false, nil
@@ -191,4 +194,11 @@ func (store *Store) TryHandle(
  */
 func (store *Store) GetRoot() (root string) {
 	return store.root
+}
+
+/* SetCacheMaxAge sets the max age field of the cache-control header returned
+ * when reponding to an HTTPS request.
+ */
+func (store *Store) SetCacheMaxAge(maxAge time.Duration) {
+	store.maxAge = maxAge
 }
