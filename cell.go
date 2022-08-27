@@ -79,6 +79,14 @@ func (cell *Cell) Stop() {
 	cell.leash.Close()
 }
 
+
+/* SetCacheMaxAge sets the max age field of the cache-control header returned
+ * when reponding to an HTTPS request with registered files.
+ */
+func (cell *Cell) SetCacheMaxAge(maxAge time.Duration) {
+	cell.store.SetCacheMaxAge(maxAge)
+}
+
 /* RegisterFile registers a file located at the filepath on the specific url
  * path.
  */
