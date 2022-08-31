@@ -8,3 +8,5 @@ github.com/hlhv/scribe v0.1.0 h1:/zHc4uBcdh0IsIFAccsNFAiu8rrTffBQhZnHzdy8BFE=
 github.com/hlhv/scribe v0.1.0/go.mod h1:no+rCxthQ9inCEMt+rkUSCgpxDtvC62yzEzP9D+o/o4=
 github.com/hlhv/scribe v0.2.0 h1:h1N7nYZTUCfKLIRqxQLqBMzKVFxnn2qV7phMT3hu2yg=
 github.com/hlhv/scribe v0.2.0/go.mod h1:no+rCxthQ9inCEMt+rkUSCgpxDtvC62yzEzP9D+o/o4=
+github.com/hlhv/scribe v0.2.1 h1:sB6oS8vBJAra4P8/wGuxYFVl+9nGKrcC758MyCGNQ2Q=
+github.com/hlhv/scribe v0.2.1/go.mod h1:no+rCxthQ9inCEMt+rkUSCgpxDtvC62yzEzP9D+o/o4=
